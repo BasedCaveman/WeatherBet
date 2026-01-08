@@ -9,7 +9,7 @@ export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || "ff6342f013
 // Define MegaETH chain
 export const megaeth = defineChain({
   id: 6342,
-  name: "MegaETH",
+  name: "MegaETH Testnet",
   nativeCurrency: {
     decimals: 18,
     name: "Ether",
@@ -17,13 +17,13 @@ export const megaeth = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ["https://carrot.megaeth.com/rpc"],
+      http: ["https://6342.rpc.thirdweb.com"],
     },
   },
   blockExplorers: {
     default: {
       name: "MegaETH Explorer",
-      url: "https://www.megaexplorer.xyz",
+      url: "https://megaexplorer.xyz",
     },
   },
   testnet: true,
