@@ -182,6 +182,11 @@ export function formatAmount(amount: bigint) {
 }
 
 export function getTimeRemaining(endTime: number) {
+  // Use a stable value for SSR, actual calculation happens on client
+  if (typeof window === "undefined") {
+    return { days: 7, hours: 0, text: "7d" };
+  }
+  
   const now = Math.floor(Date.now() / 1000);
   const remaining = endTime - now;
 
