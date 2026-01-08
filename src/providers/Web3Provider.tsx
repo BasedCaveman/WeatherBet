@@ -17,26 +17,24 @@ const metadata = {
   icons: ["https://weatherbet.app/icon.png"],
 };
 
-// Initialize AppKit
-if (projectId) {
-  createAppKit({
-    adapters: [wagmiAdapter],
-    projectId,
-    networks,
-    defaultNetwork: megaeth,
-    metadata,
-    features: {
-      analytics: true,
-      email: false,
-      socials: false,
-    },
-    themeMode: "light",
-    themeVariables: {
-      "--w3m-accent": "#22c55e",
-      "--w3m-border-radius-master": "2px",
-    },
-  });
-}
+// Initialize AppKit - always call this
+const appKit = createAppKit({
+  adapters: [wagmiAdapter],
+  projectId: projectId || "demo", // fallback to prevent errors
+  networks,
+  defaultNetwork: megaeth,
+  metadata,
+  features: {
+    analytics: true,
+    email: false,
+    socials: false,
+  },
+  themeMode: "light",
+  themeVariables: {
+    "--w3m-accent": "#22c55e",
+    "--w3m-border-radius-master": "2px",
+  },
+});
 
 export function Web3Provider({ children }: { children: ReactNode }) {
   return (

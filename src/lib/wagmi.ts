@@ -4,11 +4,7 @@ import { defineChain } from "viem";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 
 // Get projectId from https://cloud.reown.com
-export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || "";
-
-if (!projectId) {
-  console.warn("Project ID is not defined - wallet connection will not work");
-}
+export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || "ff6342f0134a0af6e9f7b972fb1c0afa";
 
 // Define MegaETH chain
 export const megaeth = defineChain({
