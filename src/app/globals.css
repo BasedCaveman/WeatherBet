@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Earth tones palette */
+  --color-earth-50: #fefdfb;
+  --color-earth-100: #f9f5ed;
+  --color-earth-200: #f0e6d3;
+  --color-earth-300: #e3d1b4;
+  --color-earth-400: #c9a97a;
+  --color-earth-500: #b08d5a;
+  --color-earth-600: #8b6b3d;
+  --color-earth-700: #6b4f2d;
+  --color-earth-800: #4a3720;
+  --color-earth-900: #2d2215;
+
+  /* Nature colors */
+  --color-rain: #38bdf8;
+  --color-rain-light: #7dd3fc;
+  --color-rain-dark: #0284c7;
+  --color-hot: #ef4444;
+  --color-hot-light: #fca5a5;
+  --color-cool: #38bdf8;
+  --color-success: #22c55e;
+  --color-success-light: #86efac;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(145deg, #f0f9ff 0%, #ecfdf5 50%, #fefce8 100%);
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Animation keyframes */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes rain-fall {
+  0% { transform: translateY(-10px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(10px); opacity: 0; }
+}
+
+@keyframes heat-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.1); filter: brightness(1.2); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes success-pop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Utility classes */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-rain {
+  animation: rain-fall 1.2s ease-in-out infinite;
+}
+
+.animate-heat {
+  animation: heat-pulse 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.4s ease-out;
+}
+
+.animate-success {
+  animation: success-pop 0.5s ease-out;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Market card */
+.market-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 28px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.03),
+    0 10px 20px -5px rgba(0, 0, 0, 0.04),
+    0 25px 50px -12px rgba(0, 0, 0, 0.06);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.market-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.06),
+    0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+/* Prediction buttons */
+.btn-predict {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 2rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: none;
+  min-width: 130px;
+}
+
+.btn-predict:active {
+  transform: scale(0.96);
+}
+
+.btn-yes {
+  background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.btn-yes:hover {
+  background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-no {
+  background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #475569;
+  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.15);
+}
+
+.btn-no:hover {
+  background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%);
+  box-shadow: 0 6px 24px rgba(100, 116, 139, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Progress bar */
+.progress-track {
+  height: 14px;
+  border-radius: 7px;
+  background: #e2e8f0;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
+
+/* Amount pills */
+.amount-pill {
+  padding: 0.75rem 1.25rem;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #475569;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.amount-pill:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.amount-pill.selected {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+/* Modal */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: bounce-in 0.35s ease-out;
+}
+
+/* Icon wrappers */
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+}
+
+.icon-rain {
+  background: linear-gradient(145deg, #bae6fd 0%, #7dd3fc 100%);
+}
+
+.icon-temp {
+  background: linear-gradient(145deg, #fecaca 0%, #fca5a5 100%);
+}
+
+/* Time badge */
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Pool badge */
+.pool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Connect wallet button */
+.wallet-btn {
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.wallet-btn:hover {
+  background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.3);
+}
+
+/* Loading spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Touch targets for mobile */
+@media (max-width: 640px) {
+  .btn-predict {
+    padding: 1rem 1.5rem;
+    min-width: 110px;
+  }
+  
+  .market-card {
+    border-radius: 24px;
+  }
+  
+  .amount-pill {
+    padding: 0.875rem 1rem;
+  }
+}
+
+/* Remove hover effects on touch devices */
+@media (hover: none) {
+  .btn-predict:hover,
+  .market-card:hover,
+  .wallet-btn:hover {
+    transform: none;
+  }
+}
