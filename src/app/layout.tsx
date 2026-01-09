@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
+import { LocationProvider } from "@/providers/LocationProvider";
+import { CurrencyProvider } from "@/providers/CurrencyProvider";
 
 export const metadata: Metadata = {
   title: "WeatherBet - Climate Prediction Markets",
@@ -27,7 +29,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <Web3Provider>
-          {children}
+          <LocationProvider>
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
+          </LocationProvider>
         </Web3Provider>
       </body>
     </html>

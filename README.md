@@ -6,159 +6,119 @@ A decentralized prediction market dApp focused on climate/weather outcomes, desi
 
 ## ✨ Features
 
-- **🎯 Two Simple Markets**
+- **🎯 Two Weather Markets**
   - **Rain Market**: Will it rain more than the 10-year average this week?
-  - **Temperature Market**: Will daily high exceed the 10-year average this week?
+  - **Temperature Market**: Will daily high exceed the 10-year average?
+
+- **📍 Location-Based**
+  - Auto-detect via GPS or IP
+  - Search any city worldwide
+  - Real weather forecasts from Open-Meteo
+  - Compare forecasts vs historical averages
+
+- **💰 Fiat Currency Display**
+  - See amounts in your local currency (USD, EUR, BRL, INR, etc.)
+  - Auto-detect based on location
+  - ETH conversion shown for transparency
 
 - **🌍 Designed for Everyone**
   - Visual-first interface with minimal text
-  - Universal icons and symbols
   - Mobile-optimized for basic smartphones
-  - Two-tap UX: Connect → Predict
+  - 15+ supported currencies
 
 - **⚡ Built on MegaETH**
   - High throughput (100k+ TPS)
   - Ultra-low gas fees
   - EVM compatible
 
-- **🔗 Reown Chain Abstraction**
-  - Connect from any chain
-  - Automatic bridging handled
-  - 300+ chains supported
+## 🎯 Use Cases
+
+| User | Hedge Against |
+|------|---------------|
+| 🌾 Farmers | Bad weather affecting crops |
+| 🎉 Event Planners | Rain ruining outdoor events |
+| 🧥 Seasonal Retailers | Warm winters reducing sales |
+| 🏖️ Tourism | Bad weather during peak season |
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- Node.js 20+
 - A Reown Project ID (get one at [cloud.reown.com](https://cloud.reown.com))
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/weatherbet.git
-cd weatherbet
+git clone https://github.com/BasedCaveman/WeatherBet.git
+cd WeatherBet
 
 # Install dependencies
 npm install
 
-# Copy environment file
-cp .env.example .env.local
+# Run development server
+npm run dev
 ```
 
 ### Configuration
 
-Edit `.env.local` with your values:
+Create `.env.local`:
 
 ```env
-# Required: Get from https://cloud.reown.com
-NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id_here
-
-# Development mode (uses mock data)
+NEXT_PUBLIC_REOWN_PROJECT_ID=ff6342f0134a0af6e9f7b972fb1c0afa
 NEXT_PUBLIC_USE_MOCK=true
-
-# Contract address (update after deployment)
-NEXT_PUBLIC_CONTRACT_ADDRESS=0x...
 ```
 
-### Development
-
-```bash
-# Start development server
-npm run dev
-
-# Open http://localhost:3000
-```
-
-### Production Build
-
-```bash
-npm run build
-npm start
-```
+Open http://localhost:3000
 
 ## 📁 Project Structure
 
 ```
 weatherbet/
 ├── contracts/
-│   └── WeatherBet.sol      # Solidity smart contract
+│   └── WeatherBet.sol      # Prediction market contract
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx      # Root layout with providers
-│   │   ├── page.tsx        # Home page with markets
-│   │   └── globals.css     # Custom styles
+│   ├── app/                # Next.js pages
 │   ├── components/
-│   │   ├── Header.tsx      # App header with wallet
-│   │   ├── MarketCard.tsx  # Market display card
-│   │   └── PredictionModal.tsx
+│   │   ├── Header.tsx
+│   │   ├── MarketCard.tsx
+│   │   ├── PredictionModal.tsx
+│   │   ├── LocationSelector.tsx
+│   │   └── CurrencySelector.tsx
 │   ├── hooks/
-│   │   └── useMarkets.ts   # Market data hooks
+│   │   └── useMarkets.ts
 │   ├── lib/
-│   │   ├── wagmi.ts        # Wagmi/Reown config
-│   │   └── constants.ts    # Contract ABI & addresses
+│   │   ├── wagmi.ts        # Web3 config
+│   │   ├── weather.ts      # Open-Meteo API
+│   │   ├── currency.ts     # Fiat conversion
+│   │   └── constants.ts
 │   └── providers/
-│       └── Web3Provider.tsx
+│       ├── Web3Provider.tsx
+│       ├── LocationProvider.tsx
+│       └── CurrencyProvider.tsx
 └── public/
 ```
 
-## 🔧 Smart Contract
+## 🔗 APIs Used (All Free)
 
-The `WeatherBet.sol` contract handles:
-
-- Market creation (admin only)
-- Prediction placement (payable)
-- Market resolution (oracle/admin)
-- Winnings calculation and claim
-- 2% platform fee
-
-### Deploying the Contract
-
-1. Set up Hardhat or Foundry
-2. Configure MegaETH network
-3. Deploy `WeatherBet.sol`
-4. Update `NEXT_PUBLIC_CONTRACT_ADDRESS` in `.env.local`
-
-### MegaETH Network Config
-
-```javascript
-{
-  chainId: 6342,
-  name: "MegaETH",
-  rpcUrl: "https://carrot.megaeth.com/rpc",
-  explorer: "https://www.megaexplorer.xyz"
-}
-```
-
-## 🎨 Design Principles
-
-1. **Visual > Text**: Icons and colors communicate meaning
-2. **Two-Tap UX**: Minimize steps to place a prediction
-3. **Mobile-First**: Optimized for smartphones
-4. **Universal**: No language barriers
-5. **Accessible**: Large touch targets, clear contrasts
+| Service | Purpose |
+|---------|---------|
+| Open-Meteo | Weather forecasts & historical data |
+| CoinGecko | ETH to fiat exchange rates |
+| ip-api.com | IP-based geolocation fallback |
 
 ## 🛣️ Roadmap
 
-### MVP (Current)
-- [x] Basic market display
-- [x] Wallet connection
-- [x] Prediction placement
-- [x] Visual-first design
-
-### Phase 2
-- [ ] GPS-based location detection
-- [ ] Weather API integration for auto-resolution
+- [x] Core UI with market cards
+- [x] Wallet connection (Reown)
+- [x] Geolocation & city search
+- [x] Real weather data integration
+- [x] Fiat currency display
+- [ ] Deploy smart contract to MegaETH
+- [ ] Weather oracle integration
 - [ ] Push notifications
-- [ ] Multi-language tooltips
-
-### Phase 3
 - [ ] Governance token
-- [ ] DAO for oracle decisions
-- [ ] Additional market types
-- [ ] NFT badges for accuracy
 
 ## 📄 License
 

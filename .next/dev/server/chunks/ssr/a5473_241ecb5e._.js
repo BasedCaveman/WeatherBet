@@ -697,7 +697,7 @@ __turbopack_context__.v((parentImport) => {
 
 __turbopack_context__.v((parentImport) => {
     return Promise.all([
-  "server/chunks/ssr/a5473_isows__esm_index_2b5e0e5b.js",
+  "server/chunks/ssr/a5473_17bba88d._.js",
   "server/chunks/ssr/a5473_531f89aa._.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
         return parentImport("[project]/Documents/GitHub/WeatherBet/node_modules/@wagmi/connectors/dist/esm/exports/index.js [app-ssr] (ecmascript)");

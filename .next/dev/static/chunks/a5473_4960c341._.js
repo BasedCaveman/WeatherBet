@@ -766,7 +766,7 @@ __turbopack_context__.v((parentImport) => {
 
 __turbopack_context__.v((parentImport) => {
     return Promise.all([
-  "static/chunks/a5473_a3ce1529._.js",
+  "static/chunks/a5473_fd5a5525._.js",
   "static/chunks/a5473_56cc199f._.js",
   "static/chunks/a5473_@wagmi_connectors_dist_esm_exports_index_606caf3d.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {

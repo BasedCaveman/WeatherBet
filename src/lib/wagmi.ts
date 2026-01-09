@@ -9,7 +9,7 @@ export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || "ff6342f013
 // Define MegaETH chain
 export const megaeth = defineChain({
   id: 6342,
-  name: "MegaETH",
+  name: "MegaETH Testnet",
   nativeCurrency: {
     decimals: 18,
     name: "Ether",
@@ -17,13 +17,13 @@ export const megaeth = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ["https://carrot.megaeth.com/rpc"],
+      http: ["https://6342.rpc.thirdweb.com"],
     },
   },
   blockExplorers: {
     default: {
       name: "MegaETH Explorer",
-      url: "https://www.megaexplorer.xyz",
+      url: "https://megaexplorer.xyz",
     },
   },
   testnet: true,
@@ -43,3 +43,20 @@ export const wagmiAdapter = new WagmiAdapter({
 });
 
 export const config = wagmiAdapter.wagmiConfig;
+
+// App metadata for social login
+export const appMetadata = {
+  name: "WeatherBet",
+  description: "Weather prediction markets for everyone",
+  url: typeof window !== "undefined" ? window.location.origin : "https://weatherbet.app",
+  icons: ["https://weatherbet.app/icon.png"],
+};
+
+// Social login features configuration
+export const socialFeatures = {
+  email: true,
+  // Primary social options (Google & Apple most common)
+  socials: ['google', 'apple', 'x', 'facebook', 'discord'] as const,
+  // Enable smart accounts for gasless transactions
+  emailShowWallets: true,
+};

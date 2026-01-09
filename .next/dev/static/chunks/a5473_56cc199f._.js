@@ -800,11 +800,7 @@ function baseAccount(parameters = {}) {
                     const { createBaseAccountSDK } = await (()=>{
                         // safe webpack optional peer dependency dynamic import
                         try {
-                            return (()=>{
-                                const e = new Error("Cannot find module '@base-org/account'");
-                                e.code = 'MODULE_NOT_FOUND';
-                                throw e;
-                            })();
+                            return __turbopack_context__.A("[project]/Documents/GitHub/WeatherBet/node_modules/@base-org/account/dist/index.js [app-client] (ecmascript, async loader)");
                         } catch  {
                             throw new Error('dependency "@base-org/account" not found');
                         }

@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, CloudRain, Flame, Sun, Snowflake, Loader2, PartyPopper } from "lucide-react";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { BET_AMOUNTS, MarketType } from "@/lib/constants";
+import { MarketType } from "@/lib/constants";
 import { usePlacePrediction } from "@/hooks/useMarkets";
+import { useCurrency } from "@/providers/CurrencyProvider";
 
 interface PredictionModalProps {
   isOpen: boolean;
@@ -22,20 +23,23 @@ export function PredictionModal({
   prediction,
   marketType,
 }: PredictionModalProps) {
-  const [selectedAmount, setSelectedAmount] = useState<number>(BET_AMOUNTS[1]);
+  const [selectedPresetIndex, setSelectedPresetIndex] = useState<number>(1); // Default to medium
   const [step, setStep] = useState<"select" | "confirming" | "success">("select");
   
   const { isConnected } = useAppKitAccount();
   const { placePrediction, isPending, isSuccess } = usePlacePrediction();
+  const { currency, betPresets, formatInFiat } = useCurrency();
 
   const isRainMarket = marketType === MarketType.RAIN;
   const isYes = prediction === true;
+
+  const selectedPreset = betPresets[selectedPresetIndex];
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setStep("select");
-      setSelectedAmount(BET_AMOUNTS[1]);
+      setSelectedPresetIndex(1);
     }
   }, [isOpen]);
 
@@ -53,7 +57,7 @@ export function PredictionModal({
     if (!isConnected || prediction === null) return;
     
     setStep("confirming");
-    await placePrediction(marketId, prediction, selectedAmount);
+    await placePrediction(marketId, prediction, selectedPreset.eth);
   };
 
   const getIcon = () => {
@@ -71,6 +75,16 @@ export function PredictionModal({
     );
   };
 
+  // Format fiat amount
+  const formatFiat = (amount: number) => {
+    return new Intl.NumberFormat(currency.locale, {
+      style: "currency",
+      currency: currency.code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -83,7 +97,7 @@ export function PredictionModal({
         onClick={onClose}
       >
         <motion.div
-          className="modal-content w-full max-w-sm p-6"
+          className="modal-content w-full max-w-sm p-6 relative"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -116,22 +130,40 @@ export function PredictionModal({
                 </div>
               </div>
 
-              {/* Amount Selection */}
+              {/* Amount Selection - Fiat First */}
               <div className="mb-6">
-                <p className="text-center text-slate-500 text-sm mb-3">Select amount</p>
+                <p className="text-center text-slate-500 text-sm mb-3">
+                  Select amount ({currency.code})
+                </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {BET_AMOUNTS.map((amount) => (
+                  {betPresets.map((preset, index) => (
                     <button
-                      key={amount}
-                      onClick={() => setSelectedAmount(amount)}
+                      key={index}
+                      onClick={() => setSelectedPresetIndex(index)}
                       className={`amount-pill text-center ${
-                        selectedAmount === amount ? "selected" : ""
+                        selectedPresetIndex === index ? "selected" : ""
                       }`}
                     >
-                      {amount} ETH
+                      <span className="block text-base font-bold">
+                        {formatFiat(preset.fiat)}
+                      </span>
+                      <span className="block text-xs text-slate-400 mt-0.5">
+                        ≈ {preset.eth.toFixed(4)} ETH
+                      </span>
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Selected Amount Display */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 text-center">
+                <p className="text-sm text-slate-500 mb-1">You're betting</p>
+                <p className="text-2xl font-bold text-slate-800">
+                  {formatFiat(selectedPreset.fiat)}
+                </p>
+                <p className="text-sm text-slate-400">
+                  ≈ {selectedPreset.eth.toFixed(4)} ETH
+                </p>
               </div>
 
               {/* Confirm Button */}
@@ -146,7 +178,7 @@ export function PredictionModal({
                 whileTap={isConnected ? { scale: 0.98 } : undefined}
               >
                 <Check className="w-5 h-5" />
-                {isConnected ? "Confirm" : "Connect Wallet"}
+                {isConnected ? "Confirm Bet" : "Connect Wallet"}
               </motion.button>
             </>
           )}
@@ -163,7 +195,7 @@ export function PredictionModal({
                 Confirming...
               </p>
               <p className="mt-2 text-sm text-slate-400">
-                {selectedAmount} ETH
+                {formatFiat(selectedPreset.fiat)}
               </p>
             </div>
           )}
@@ -185,7 +217,7 @@ export function PredictionModal({
                 Success!
               </p>
               <p className="mt-2 text-sm text-slate-400">
-                Prediction placed
+                Bet placed: {formatFiat(selectedPreset.fiat)}
               </p>
             </motion.div>
           )}
