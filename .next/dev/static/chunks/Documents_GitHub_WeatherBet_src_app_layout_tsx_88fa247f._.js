@@ -2,7 +2,7 @@
     script: typeof document === "object" ? document.currentScript : undefined,
     chunks: [
   "static/chunks/Documents_GitHub_WeatherBet_src_app_globals_e9f68ec1.css",
-  "static/chunks/a5473_4960c341._.js",
+  "static/chunks/a5473_ab894a9c._.js",
   "static/chunks/a5473_@reown_appkit-controllers_dist_esm_aa6ea5a0._.js",
   "static/chunks/a5473_@reown_appkit-wallet_dist_esm_src_0a10229c._.js",
   "static/chunks/a5473_viem__esm_ab4fd9e0._.js",
@@ -20,7 +20,7 @@
   "static/chunks/a5473_@reown_appkit-adapter-wagmi_dist_esm_src_16c1a830._.js",
   "static/chunks/a5473_@walletconnect_eeaeeec8._.js",
   "static/chunks/a5473_4e5f26a0._.js",
-  "static/chunks/Documents_GitHub_WeatherBet_src_c2813971._.js"
+  "static/chunks/Documents_GitHub_WeatherBet_src_67ea0073._.js"
 ],
     source: "dynamic"
 });

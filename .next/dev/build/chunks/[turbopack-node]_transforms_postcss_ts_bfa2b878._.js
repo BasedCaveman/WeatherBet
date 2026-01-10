@@ -3,8 +3,7 @@ module.exports = [
 
 __turbopack_context__.v((parentImport) => {
     return Promise.all([
-  "chunks/a5473_a0884cdb._.js",
-  "chunks/[root-of-the-server]__3f0af1f3._.js"
+  "chunks/[root-of-the-server]__6914de43._.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
         return parentImport("[turbopack-node]/transforms/postcss.ts { CONFIG => \"[project]/Documents/GitHub/WeatherBet/postcss.config.mjs [postcss] (ecmascript)\" } [postcss] (ecmascript)");
     });
