@@ -43,3 +43,20 @@ export const wagmiAdapter = new WagmiAdapter({
 });
 
 export const config = wagmiAdapter.wagmiConfig;
+
+// App metadata for social login
+export const appMetadata = {
+  name: "WeatherBet",
+  description: "Weather prediction markets for everyone",
+  url: typeof window !== "undefined" ? window.location.origin : "https://weatherbet.app",
+  icons: ["https://weatherbet.app/icon.png"],
+};
+
+// Social login features configuration
+export const socialFeatures = {
+  email: true,
+  // Primary social options (Google & Apple most common)
+  socials: ['google', 'apple', 'x', 'facebook', 'discord'] as const,
+  // Enable smart accounts for gasless transactions
+  emailShowWallets: true,
+};
