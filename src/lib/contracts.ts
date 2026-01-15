@@ -1,18 +1,15 @@
 // Contract addresses for different networks
+export const CHAIN_CONFIG = {
+  chainId: 6343,
+  chainName: 'MegaETH Testnet',
+  rpcUrl: 'https://timothy.megaeth.com/rpc',
+  blockExplorer: 'https://megaeth-testnet-v2.blockscout.com',
+} as const;
+
 export const CONTRACT_ADDRESSES = {
-  // MegaETH Testnet (Chain ID: 6342)
-  // UPDATE THESE AFTER DEPLOYMENT
-  6342: {
-    weatherBetAMM: "0x0000000000000000000000000000000000000000", // Deploy and update
-    usdm: "0x0000000000000000000000000000000000000000",         // Deploy and update
-    weatherOracle: "0x0000000000000000000000000000000000000000", // Deploy and update
-  },
-  // Local development
-  31337: {
-    weatherBetAMM: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    usdm: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    weatherOracle: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-  },
+  USDM: '0x18Fe541217F45a32D11183C2F90a5E22598d9749',
+  AMM: '0x7ff64aC54827360A860d8EbD13Bf39e0eb68fE5A',
+  ORACLE: '0x20154d6Ebb08c614A7F2e4eE76b9de88A4E1a54A',
 } as const;
 
 // Simplified ABIs (only the functions we need)
