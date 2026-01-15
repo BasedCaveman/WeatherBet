@@ -1,200 +1,75 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
-import { parseEther, formatEther } from "viem";
-import {
-  PREDICTION_MARKET_ADDRESS,
-  PREDICTION_MARKET_ABI,
-  MOCK_MARKETS,
-  MarketType,
-} from "@/lib/constants";
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { useWeb3 } from "@/providers/Web3Provider";
 
-export interface Market {
+const AMM_ADDRESS = "0x7ff64aC54827360A860d8EbD13Bf39e0eb68fE5A";
+
+const AMM_ABI = [
+  "function markets(uint256) view returns (uint256 id, uint256 closes, uint256 weekEnd, uint256 yesShares, uint256 noShares, uint256 liq, int256 avg, int256 proposed, uint256 resTime, uint8 status, bool outcome)",
+  "function getPrice(uint256 id) view returns (uint256 yes, uint256 no)",
+  "function nextId() view returns (uint256)",
+];
+
+interface Market {
   id: number;
-  marketType: MarketType;
-  startTime: number;
-  endTime: number;
-  totalYesAmount: bigint;
-  totalNoAmount: bigint;
-  resolved: boolean;
-  outcome: boolean;
+  closes: number;
+  weekEnd: number;
+  yesShares: bigint;
+  noShares: bigint;
+  liquidity: bigint;
+  avgTemp: number;
+  status: number;
+  yesPrice: number;
+  noPrice: number;
 }
-
-export interface UserPrediction {
-  position: boolean;
-  amount: bigint;
-  claimed: boolean;
-}
-
-// Use mock data in development
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true" || PREDICTION_MARKET_ADDRESS === "0x0000000000000000000000000000000000000000";
 
 export function useMarkets() {
-  // In mock mode, return mock data
-  if (USE_MOCK) {
-    return {
-      markets: MOCK_MARKETS as Market[],
-      isLoading: false,
-      error: null,
-    };
-  }
+  const { provider } = useWeb3();
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Real contract call would go here
-  return {
-    markets: [] as Market[],
-    isLoading: false,
-    error: null,
-  };
-}
-
-export function useMarket(marketId: number) {
-  if (USE_MOCK) {
-    const market = MOCK_MARKETS.find((m) => m.id === marketId);
-    return {
-      market: market as Market | undefined,
-      isLoading: false,
-      error: null,
-    };
-  }
-
-  const { data, isLoading, error } = useReadContract({
-    address: PREDICTION_MARKET_ADDRESS,
-    abi: PREDICTION_MARKET_ABI,
-    functionName: "getMarket",
-    args: [BigInt(marketId)],
-  });
-
-  return {
-    market: data as Market | undefined,
-    isLoading,
-    error,
-  };
-}
-
-export function useUserPrediction(marketId: number) {
-  const { address } = useAccount();
-
-  if (USE_MOCK || !address) {
-    return {
-      prediction: null as UserPrediction | null,
-      isLoading: false,
-      error: null,
-    };
-  }
-
-  const { data, isLoading, error } = useReadContract({
-    address: PREDICTION_MARKET_ADDRESS,
-    abi: PREDICTION_MARKET_ABI,
-    functionName: "getUserPrediction",
-    args: [BigInt(marketId), address],
-  });
-
-  // Transform tuple response to UserPrediction object
-  const prediction: UserPrediction | null = data
-    ? {
-        position: data[0],
-        amount: data[1],
-        claimed: data[2],
+  useEffect(() => {
+    const fetchMarkets = async () => {
+      if (!provider) {
+        setLoading(false);
+        return;
       }
-    : null;
 
-  return {
-    prediction,
-    isLoading,
-    error,
-  };
-}
+      try {
+        const contract = new ethers.Contract(AMM_ADDRESS, AMM_ABI, provider);
+        const nextId = await contract.nextId();
+        const marketList: Market[] = [];
 
-export function usePlacePrediction() {
-  const [isPending, setIsPending] = useState(false);
-  const { writeContract, data: hash, error, isPending: isWritePending } = useWriteContract();
+        for (let i = 1; i < Number(nextId); i++) {
+          const m = await contract.markets(i);
+          const prices = await contract.getPrice(i);
+          
+          marketList.push({
+            id: i,
+            closes: Number(m.closes),
+            weekEnd: Number(m.weekEnd),
+            yesShares: m.yesShares,
+            noShares: m.noShares,
+            liquidity: m.liq,
+            avgTemp: Number(m.avg) / 100,
+            status: m.status,
+            yesPrice: Number(prices.yes) / 10000,
+            noPrice: Number(prices.no) / 10000,
+          });
+        }
 
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
+        setMarkets(marketList);
+      } catch (err) {
+        console.error("Failed to fetch markets:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const placePrediction = async (marketId: number, prediction: boolean, amount: number) => {
-    if (USE_MOCK) {
-      setIsPending(true);
-      // Simulate transaction
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsPending(false);
-      return;
-    }
+    fetchMarkets();
+  }, [provider]);
 
-    writeContract({
-      address: PREDICTION_MARKET_ADDRESS,
-      abi: PREDICTION_MARKET_ABI,
-      functionName: "placePrediction",
-      args: [BigInt(marketId), prediction],
-      value: parseEther(amount.toString()),
-    });
-  };
-
-  return {
-    placePrediction,
-    isPending: isPending || isWritePending || isConfirming,
-    isSuccess,
-    error,
-    hash,
-  };
-}
-
-export function useClaimWinnings() {
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const claimWinnings = (marketId: number) => {
-    writeContract({
-      address: PREDICTION_MARKET_ADDRESS,
-      abi: PREDICTION_MARKET_ABI,
-      functionName: "claimWinnings",
-      args: [BigInt(marketId)],
-    });
-  };
-
-  return {
-    claimWinnings,
-    isPending: isPending || isConfirming,
-    isSuccess,
-    error,
-    hash,
-  };
-}
-
-// Utility functions
-export function calculateOdds(yesAmount: bigint, noAmount: bigint) {
-  const total = yesAmount + noAmount;
-  if (total === BigInt(0)) return { yesPercent: 50, noPercent: 50 };
-
-  const yesPercent = Number((yesAmount * BigInt(100)) / total);
-  const noPercent = 100 - yesPercent;
-
-  return { yesPercent, noPercent };
-}
-
-export function formatAmount(amount: bigint) {
-  return parseFloat(formatEther(amount)).toFixed(3);
-}
-
-export function getTimeRemaining(endTime: number) {
-  // Use a stable value for SSR, actual calculation happens on client
-  if (typeof window === "undefined") {
-    return { days: 7, hours: 0, text: "7d" };
-  }
-  
-  const now = Math.floor(Date.now() / 1000);
-  const remaining = endTime - now;
-
-  if (remaining <= 0) return { days: 0, hours: 0, text: "Ended" };
-
-  const days = Math.floor(remaining / (24 * 60 * 60));
-  const hours = Math.floor((remaining % (24 * 60 * 60)) / (60 * 60));
-
-  if (days > 0) return { days, hours, text: `${days}d` };
-  return { days: 0, hours, text: `${hours}h` };
+  return { markets, loading };
 }
