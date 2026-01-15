@@ -1,9 +1,0 @@
-[01:47:30.002] Server  LOG     ✓ Ready in 6449.7s
-[05:41:13.694] Server  LOG     ○ Compiling / ...
-[05:49:34.124] Server  LOG     ✓ Finished writing to filesystem cache in 5.1min
-[05:50:12.886] Server  LOG     ✓ Finished writing to filesystem cache in 38.7s
-[05:51:58.156] Server  LOG     ✓ Finished writing to filesystem cache in 10.5s
-[05:52:17.869] Server  LOG     ✓ Finished filesystem cache database compaction in 27.9s
-[06:01:49.406] Server  LOG     ✓ Finished writing to filesystem cache in 2.8min
-[06:05:52.800] Server  WARN    Lit is in dev mode. Not recommended for production! See https://lit.dev/msg/dev-mode for more information.
-[11:07:19.626] Server  LOG     ✓ Compiled in 1379ms
