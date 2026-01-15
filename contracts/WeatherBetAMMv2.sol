@@ -1,26 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.0/contracts/token/ERC20/IERC20.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.0/contracts/token/ERC20/utils/SafeERC20.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.0/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.0/contracts/utils/ReentrancyGuard.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.0/contracts/utils/Pausable.sol";
 
 /**
  * @title WeatherBetAMM v2 - Security Hardened
  * @notice LMSR-based prediction market with betting windows and oracle verification
- * @dev Audited for: reentrancy, overflow, front-running, oracle manipulation
- * 
- * SECURITY FEATURES:
- * - ReentrancyGuard on all state-changing functions
- * - Pausable for emergency stops
- * - Betting window enforcement (closes 24h before week starts)
- * - Oracle verification period (24h dispute window)
- * - Maximum position limits per user
- * - Slippage protection on all trades
- * - Rate limiting on withdrawals
- * - Input validation on all parameters
  */
 contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
@@ -28,15 +17,15 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
     // ============ Constants ============
     
     uint256 public constant PRECISION = 1e18;
-    uint256 public constant SHARE_PRICE_PRECISION = 1e6;      // 6 decimals for prices
-    uint256 public constant MIN_LIQUIDITY = 100e18;           // Minimum 100 USDm liquidity
-    uint256 public constant MAX_SHARES_PER_TX = 10000e18;     // Max 10k shares per transaction
-    uint256 public constant MAX_POSITION_PER_USER = 100000e18; // Max 100k shares per user per market
-    uint256 public constant BETTING_WINDOW_BUFFER = 24 hours;  // Betting closes 24h before week
-    uint256 public constant RESOLUTION_DISPUTE_PERIOD = 24 hours; // 24h to dispute resolution
+    uint256 public constant SHARE_PRICE_PRECISION = 1e6;
+    uint256 public constant MIN_LIQUIDITY = 100e18;
+    uint256 public constant MAX_SHARES_PER_TX = 10000e18;
+    uint256 public constant MAX_POSITION_PER_USER = 100000e18;
+    uint256 public constant BETTING_WINDOW_BUFFER = 24 hours;
+    uint256 public constant RESOLUTION_DISPUTE_PERIOD = 24 hours;
     uint256 public constant MIN_MARKET_DURATION = 1 days;
     uint256 public constant MAX_MARKET_DURATION = 30 days;
-    uint256 public constant WITHDRAWAL_COOLDOWN = 1 hours;     // Rate limit withdrawals
+    uint256 public constant WITHDRAWAL_COOLDOWN = 1 hours;
     
     // ============ Types ============
     
@@ -46,21 +35,21 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
     struct Market {
         uint256 id;
         MarketType marketType;
-        bytes32 locationHash;           // keccak256(lat, lon, city)
-        uint256 createdAt;              // When market was created
-        uint256 bettingOpens;           // When betting opens (usually creation time)
-        uint256 bettingCloses;          // When betting closes (24h before week starts)
-        uint256 targetWeekStart;        // Start of the week being predicted
-        uint256 targetWeekEnd;          // End of the week being predicted
-        uint256 yesShares;              // Total YES shares outstanding
-        uint256 noShares;               // Total NO shares outstanding  
-        uint256 liquidityParam;         // LMSR 'b' parameter
-        int256 historicalAvg;           // 10-year average (scaled by 100)
+        bytes32 locationHash;
+        uint256 createdAt;
+        uint256 bettingOpens;
+        uint256 bettingCloses;
+        uint256 targetWeekStart;
+        uint256 targetWeekEnd;
+        uint256 yesShares;
+        uint256 noShares;
+        uint256 liquidityParam;
+        int256 historicalAvg;
         MarketStatus status;
-        int256 proposedOutcome;         // Proposed resolution value
-        uint256 resolutionProposedAt;   // When resolution was proposed
-        bool finalOutcome;              // true = YES won, false = NO won
-        uint256 totalVolume;            // Total trading volume
+        int256 proposedOutcome;
+        uint256 resolutionProposedAt;
+        bool finalOutcome;
+        uint256 totalVolume;
     }
     
     struct Position {
@@ -78,7 +67,7 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         uint256 totalLosses;
         uint256 marketsParticipated;
         uint256 marketsWon;
-        uint256 lastWithdrawalTime;     // For rate limiting
+        uint256 lastWithdrawalTime;
     }
 
     // ============ State Variables ============
@@ -193,13 +182,9 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
 
     // ============ User Account Functions ============
     
-    /**
-     * @notice Deposit USDm into trading account
-     * @param amount Amount of USDm to deposit
-     */
     function deposit(uint256 amount) external nonReentrant whenNotPaused {
         require(amount > 0, "Amount must be > 0");
-        require(amount <= 1000000e18, "Amount too large"); // Max 1M per deposit
+        require(amount <= 1000000e18, "Amount too large");
         
         usdm.safeTransferFrom(msg.sender, address(this), amount);
         
@@ -209,10 +194,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         emit Deposited(msg.sender, amount);
     }
     
-    /**
-     * @notice Withdraw USDm from trading account
-     * @param amount Amount of USDm to withdraw
-     */
     function withdraw(uint256 amount) external nonReentrant whenNotPaused {
         UserAccount storage account = accounts[msg.sender];
         
@@ -234,14 +215,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
 
     // ============ Market Creation ============
     
-    /**
-     * @notice Create a new prediction market
-     * @param marketType RAIN or TEMPERATURE
-     * @param locationHash Hash of location (lat, lon, city)
-     * @param targetWeekStart Unix timestamp of Monday 00:00 UTC for the target week
-     * @param historicalAvg 10-year historical average (scaled by 100)
-     * @param initialLiquidity Initial liquidity parameter for LMSR
-     */
     function createMarket(
         MarketType marketType,
         bytes32 locationHash,
@@ -249,17 +222,13 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         int256 historicalAvg,
         uint256 initialLiquidity
     ) external onlyOwner returns (uint256 marketId) {
-        // Validate inputs
         require(locationHash != bytes32(0), "Invalid location");
         require(initialLiquidity >= MIN_LIQUIDITY, "Liquidity too low");
         require(targetWeekStart > block.timestamp, "Target week must be in future");
         
-        // Calculate betting window
-        // Betting closes 24 hours before the target week starts
         uint256 bettingCloses = targetWeekStart - BETTING_WINDOW_BUFFER;
         require(bettingCloses > block.timestamp, "Betting window already closed");
         
-        // Target week end is 7 days after start
         uint256 targetWeekEnd = targetWeekStart + 7 days;
         
         marketId = nextMarketId++;
@@ -269,7 +238,7 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
             marketType: marketType,
             locationHash: locationHash,
             createdAt: block.timestamp,
-            bettingOpens: block.timestamp,  // Opens immediately
+            bettingOpens: block.timestamp,
             bettingCloses: bettingCloses,
             targetWeekStart: targetWeekStart,
             targetWeekEnd: targetWeekEnd,
@@ -298,13 +267,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
 
     // ============ Trading Functions ============
     
-    /**
-     * @notice Buy shares in a market
-     * @param marketId Market to buy shares in
-     * @param isYes true for YES shares, false for NO shares
-     * @param shares Number of shares to buy (18 decimals)
-     * @param maxCost Maximum USDm willing to spend (slippage protection)
-     */
     function buyShares(
         uint256 marketId,
         bool isYes,
@@ -318,19 +280,16 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         Position storage pos = positions[marketId][msg.sender];
         UserAccount storage account = accounts[msg.sender];
         
-        // Check position limits
         uint256 newTotalShares = isYes 
             ? pos.yesShares + shares 
             : pos.noShares + shares;
         require(newTotalShares <= MAX_POSITION_PER_USER, "Exceeds max position");
         
-        // Calculate cost using LMSR
         uint256 cost = _calculateBuyCost(market, isYes, shares);
         require(cost > 0, "Invalid cost calculation");
         require(cost <= maxCost, "Cost exceeds maximum (slippage)");
         require(account.balance >= cost, "Insufficient balance");
         
-        // Update state
         account.balance -= cost;
         
         if (isYes) {
@@ -344,25 +303,15 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         pos.totalCost += cost;
         market.totalVolume += cost;
         
-        // Track participation
         if (pos.yesShares == shares || pos.noShares == shares) {
-            // First position in this market
             account.marketsParticipated++;
         }
         
-        // Get new prices for event
         (uint256 yesPrice, uint256 noPrice) = _getPrices(market);
         
         emit SharesBought(marketId, msg.sender, isYes, shares, cost, yesPrice, noPrice);
     }
     
-    /**
-     * @notice Sell shares back to the AMM
-     * @param marketId Market to sell shares in
-     * @param isYes true for YES shares, false for NO shares
-     * @param shares Number of shares to sell
-     * @param minPayout Minimum USDm to receive (slippage protection)
-     */
     function sellShares(
         uint256 marketId,
         bool isYes,
@@ -374,18 +323,15 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         Market storage market = markets[marketId];
         Position storage pos = positions[marketId][msg.sender];
         
-        // Validate ownership
         if (isYes) {
             require(pos.yesShares >= shares, "Insufficient YES shares");
         } else {
             require(pos.noShares >= shares, "Insufficient NO shares");
         }
         
-        // Calculate payout using LMSR
         uint256 payout = _calculateSellPayout(market, isYes, shares);
         require(payout >= minPayout, "Payout below minimum (slippage)");
         
-        // Update state
         if (isYes) {
             market.yesShares -= shares;
             pos.yesShares -= shares;
@@ -396,7 +342,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         
         accounts[msg.sender].balance += payout;
         
-        // Get new prices for event
         (uint256 yesPrice, uint256 noPrice) = _getPrices(market);
         
         emit SharesSold(marketId, msg.sender, isYes, shares, payout, yesPrice, noPrice);
@@ -404,10 +349,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
 
     // ============ Resolution Functions ============
     
-    /**
-     * @notice Close betting for a market (called automatically or by keeper)
-     * @param marketId Market to close betting for
-     */
     function closeBetting(uint256 marketId) external marketExists(marketId) {
         Market storage market = markets[marketId];
         
@@ -422,11 +363,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         emit BettingClosed(marketId, block.timestamp);
     }
     
-    /**
-     * @notice Propose resolution for a market (oracle only)
-     * @param marketId Market to resolve
-     * @param actualValue Actual weather value from oracle
-     */
     function proposeResolution(
         uint256 marketId,
         int256 actualValue
@@ -440,12 +376,10 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         );
         require(block.timestamp >= market.targetWeekEnd, "Week not ended yet");
         
-        // Store proposed outcome
         market.proposedOutcome = actualValue;
         market.resolutionProposedAt = block.timestamp;
         market.status = MarketStatus.PENDING_RESOLUTION;
         
-        // Determine outcome: YES wins if actual > historical average
         bool outcome = actualValue > market.historicalAvg;
         
         emit ResolutionProposed(
@@ -456,11 +390,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         );
     }
     
-    /**
-     * @notice Dispute a proposed resolution
-     * @param marketId Market to dispute
-     * @param reason Reason for dispute
-     */
     function disputeResolution(
         uint256 marketId,
         string calldata reason
@@ -473,7 +402,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
             "Dispute period ended"
         );
         
-        // Must have a position to dispute
         Position storage pos = positions[marketId][msg.sender];
         require(pos.yesShares > 0 || pos.noShares > 0, "Must have position to dispute");
         
@@ -482,10 +410,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         emit ResolutionDisputed(marketId, msg.sender, reason);
     }
     
-    /**
-     * @notice Finalize resolution after dispute period
-     * @param marketId Market to finalize
-     */
     function finalizeResolution(uint256 marketId) external marketExists(marketId) {
         Market storage market = markets[marketId];
         
@@ -495,7 +419,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
             "Dispute period not ended"
         );
         
-        // Finalize the outcome
         market.finalOutcome = market.proposedOutcome > market.historicalAvg;
         market.status = MarketStatus.RESOLVED;
         
@@ -504,11 +427,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         emit MarketResolved(marketId, market.finalOutcome, market.proposedOutcome);
     }
     
-    /**
-     * @notice Override resolution for disputed market (owner only)
-     * @param marketId Market to override
-     * @param finalValue Corrected value
-     */
     function overrideResolution(
         uint256 marketId,
         int256 finalValue
@@ -526,10 +444,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         emit MarketResolved(marketId, market.finalOutcome, finalValue);
     }
     
-    /**
-     * @notice Claim winnings from a resolved market
-     * @param marketId Market to claim from
-     */
     function claimWinnings(uint256 marketId) external nonReentrant marketExists(marketId) {
         Market storage market = markets[marketId];
         Position storage pos = positions[marketId][msg.sender];
@@ -541,11 +455,9 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         
         pos.claimed = true;
         
-        // Calculate payout
         uint256 winningShares = market.finalOutcome ? pos.yesShares : pos.noShares;
         uint256 losingShares = market.finalOutcome ? pos.noShares : pos.yesShares;
         
-        // Each winning share pays out 1 USDm
         uint256 payout = winningShares;
         
         if (payout > 0) {
@@ -563,18 +475,12 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
 
     // ============ View Functions ============
     
-    /**
-     * @notice Get current YES/NO prices for a market
-     */
     function getPrices(uint256 marketId) external view returns (uint256 yesPrice, uint256 noPrice) {
         Market storage market = markets[marketId];
         require(market.id != 0, "Market does not exist");
         return _getPrices(market);
     }
     
-    /**
-     * @notice Get market betting window status
-     */
     function getBettingStatus(uint256 marketId) external view returns (
         bool isOpen,
         uint256 opensAt,
@@ -598,9 +504,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         }
     }
     
-    /**
-     * @notice Get resolution status for a market
-     */
     function getResolutionStatus(uint256 marketId) external view returns (
         MarketStatus status,
         int256 proposedValue,
@@ -623,46 +526,28 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         }
     }
     
-    /**
-     * @notice Get full market details
-     */
     function getMarket(uint256 marketId) external view returns (Market memory) {
         return markets[marketId];
     }
     
-    /**
-     * @notice Get user position in a market
-     */
     function getPosition(uint256 marketId, address user) external view returns (Position memory) {
         return positions[marketId][user];
     }
     
-    /**
-     * @notice Get user account details
-     */
     function getAccount(address user) external view returns (UserAccount memory) {
         return accounts[user];
     }
     
-    /**
-     * @notice Get all active market IDs
-     */
     function getActiveMarkets() external view returns (uint256[] memory) {
         return activeMarketIds;
     }
     
-    /**
-     * @notice Quote cost to buy shares
-     */
     function quoteBuy(uint256 marketId, bool isYes, uint256 shares) external view returns (uint256) {
         Market storage market = markets[marketId];
         require(market.id != 0, "Market does not exist");
         return _calculateBuyCost(market, isYes, shares);
     }
     
-    /**
-     * @notice Quote payout for selling shares
-     */
     function quoteSell(uint256 marketId, bool isYes, uint256 shares) external view returns (uint256) {
         Market storage market = markets[marketId];
         require(market.id != 0, "Market does not exist");
@@ -702,9 +587,6 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
         _removeFromActiveMarkets(marketId);
     }
     
-    /**
-     * @notice Emergency withdrawal for cancelled markets
-     */
     function emergencyWithdraw(uint256 marketId) external nonReentrant marketExists(marketId) {
         Market storage market = markets[marketId];
         Position storage pos = positions[marketId][msg.sender];
@@ -761,7 +643,7 @@ contract WeatherBetAMMv2 is Ownable, ReentrancyGuard, Pausable {
     
     function _lmsrCost(uint256 q1, uint256 q2, uint256 b) internal pure returns (uint256) {
         if (q1 == 0 && q2 == 0) {
-            return (b * 693147) / 1000000; // b * ln(2)
+            return (b * 693147) / 1000000;
         }
         
         uint256 x1 = (q1 * PRECISION) / b;
