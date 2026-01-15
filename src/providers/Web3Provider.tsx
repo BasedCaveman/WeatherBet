@@ -1,57 +1,74 @@
 "use client";
 
-import React, { type ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createAppKit } from "@reown/appkit/react";
-import { wagmiAdapter, projectId, networks, megaeth } from "@/lib/wagmi";
-import { WagmiProvider, type Config } from "wagmi";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { ethers } from "ethers";
 
-// Create query client
-const queryClient = new QueryClient();
+interface Web3ContextType {
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.Signer | null;
+  address: string | null;
+  chainId: number | null;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  isConnecting: boolean;
+}
 
-// Define metadata
-const metadata = {
-  name: "WeatherBet",
-  description: "Weather hedging for farmers & event planners",
-  url: typeof window !== "undefined" ? window.location.origin : "https://weatherbet.app",
-  icons: ["https://weatherbet.app/icon.png"],
-};
-
-// Initialize AppKit with social login enabled
-const appKit = createAppKit({
-  adapters: [wagmiAdapter],
-  projectId: projectId || "ff6342f0134a0af6e9f7b972fb1c0afa",
-  networks,
-  defaultNetwork: megaeth,
-  metadata,
-  
-  // SOCIAL LOGIN - Primary authentication method
-  features: {
-    analytics: true,
-    email: true, // Enable email login
-    socials: ['google', 'apple', 'x', 'facebook', 'discord'], // Social providers
-    emailShowWallets: true, // Show wallet option after social login
-    onramp: false, // Disable for now
-  },
-  
-  // Theme
-  themeMode: "light",
-  themeVariables: {
-    "--w3m-accent": "#22c55e",
-    "--w3m-border-radius-master": "2px",
-  },
-  
-  // All wallets available in "advanced" section
-  allWallets: "SHOW",
-  featuredWalletIds: [], // Don't feature specific wallets
-});
+const Web3Context = createContext<Web3ContextType | null>(null);
 
 export function Web3Provider({ children }: { children: ReactNode }) {
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
+  const [chainId, setChainId] = useState<number | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const connect = async () => {
+    if (typeof window.ethereum === "undefined") {
+      alert("Please install MetaMask!");
+      return;
+    }
+    setIsConnecting(true);
+    try {
+      const browserProvider = new ethers.BrowserProvider(window.ethereum);
+      await browserProvider.send("eth_requestAccounts", []);
+      const signer = await browserProvider.getSigner();
+      const address = await signer.getAddress();
+      const network = await browserProvider.getNetwork();
+      
+      setProvider(browserProvider);
+      setSigner(signer);
+      setAddress(address);
+      setChainId(Number(network.chainId));
+    } catch (err) {
+      console.error("Connection failed:", err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const disconnect = () => {
+    setProvider(null);
+    setSigner(null);
+    setAddress(null);
+    setChainId(null);
+  };
+
+  useEffect(() => {
+    if (typeof window.ethereum !== "undefined") {
+      window.ethereum.on("accountsChanged", () => window.location.reload());
+      window.ethereum.on("chainChanged", () => window.location.reload());
+    }
+  }, []);
+
   return (
-    <WagmiProvider config={wagmiAdapter.wagmiConfig as Config}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </WagmiProvider>
+    <Web3Context.Provider value={{ provider, signer, address, chainId, connect, disconnect, isConnecting }}>
+      {children}
+    </Web3Context.Provider>
   );
 }
+
+export const useWeb3 = () => {
+  const context = useContext(Web3Context);
+  if (!context) throw new Error("useWeb3 must be used within Web3Provider");
+  return context;
+};
