@@ -8,8 +8,8 @@ import { Loader2, MapPin, CloudRain, Thermometer } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
-  const { markets, isLoading } = useMarkets();
-  const { city, weather, isDetecting, isLoadingWeather, detectLocation } = useLocation();
+  const { markets, loading } = useMarkets();
+  const { city, weather, isDetecting, loadingWeather, detectLocation } = useLocation();
 
   // Auto-detect location on first visit
   useEffect(() => {
@@ -123,14 +123,14 @@ export default function Home() {
           )}
 
           {/* Loading state */}
-          {(isLoading || isLoadingWeather) && (
+          {(loading || loadingWeather) && (
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
             </div>
           )}
 
           {/* Markets */}
-          {!isLoading && !isLoadingWeather && markets && (
+          {!loading && !loadingWeather && markets && (
             <div className="space-y-6">
               {markets.map((market) => (
                 <MarketCard key={market.id} market={market} />
