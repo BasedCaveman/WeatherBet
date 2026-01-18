@@ -10,8 +10,11 @@ interface Location {
 }
 
 interface Weather {
-  temp: number;
+  currentTemp: number;
   description: string;
+  humidity: number;
+  windSpeed: number;
+  forecast: string;
 }
 
 interface LocationContextType {
@@ -33,17 +36,25 @@ const DEFAULT_LOCATION: Location = {
   lon: -74.006,
 };
 
+const DEFAULT_WEATHER: Weather = {
+  currentTemp: 22,
+  description: "Partly Cloudy",
+  humidity: 65,
+  windSpeed: 12,
+  forecast: "Mild temperatures expected",
+};
+
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [location, setLocation] = useState<Location | null>(DEFAULT_LOCATION);
-  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weather, setWeather] = useState<Weather | null>(DEFAULT_WEATHER);
   const [isDetecting, setIsDetecting] = useState(false);
   const [loadingWeather, setLoadingWeather] = useState(false);
 
   const detectLocation = () => {
     setIsDetecting(true);
-    // Simple detection - just use default for now
     setTimeout(() => {
       setLocation(DEFAULT_LOCATION);
+      setWeather(DEFAULT_WEATHER);
       setIsDetecting(false);
     }, 500);
   };
