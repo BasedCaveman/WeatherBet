@@ -9,9 +9,19 @@ interface Location {
   lon: number;
 }
 
+interface Weather {
+  temp: number;
+  description: string;
+}
+
 interface LocationContextType {
   location: Location | null;
   setLocation: (location: Location) => void;
+  city: string;
+  weather: Weather | null;
+  isDetecting: boolean;
+  loadingWeather: boolean;
+  detectLocation: () => void;
 }
 
 const LocationContext = createContext<LocationContextType | null>(null);
@@ -25,9 +35,31 @@ const DEFAULT_LOCATION: Location = {
 
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [location, setLocation] = useState<Location | null>(DEFAULT_LOCATION);
+  const [weather, setWeather] = useState<Weather | null>(null);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [loadingWeather, setLoadingWeather] = useState(false);
+
+  const detectLocation = () => {
+    setIsDetecting(true);
+    // Simple detection - just use default for now
+    setTimeout(() => {
+      setLocation(DEFAULT_LOCATION);
+      setIsDetecting(false);
+    }, 500);
+  };
 
   return (
-    <LocationContext.Provider value={{ location, setLocation }}>
+    <LocationContext.Provider
+      value={{
+        location,
+        setLocation,
+        city: location?.name || "Unknown",
+        weather,
+        isDetecting,
+        loadingWeather,
+        detectLocation,
+      }}
+    >
       {children}
     </LocationContext.Provider>
   );
