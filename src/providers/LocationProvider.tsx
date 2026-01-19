@@ -15,6 +15,7 @@ interface Weather {
   humidity: number;
   windSpeed: number;
   forecast: string;
+  weeklyPrecipitationForecast: number;
 }
 
 interface LocationContextType {
@@ -42,6 +43,7 @@ const DEFAULT_WEATHER: Weather = {
   humidity: 65,
   windSpeed: 12,
   forecast: "Mild temperatures expected",
+  weeklyPrecipitationForecast: 45,
 };
 
 export function LocationProvider({ children }: { children: ReactNode }) {
