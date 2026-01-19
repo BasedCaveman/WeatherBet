@@ -1,15 +1,24 @@
 "use client";
 
-interface MarketCardProps {
+interface Market {
   id: number;
   closes: number;
+  weekEnd: number;
+  yesShares: bigint;
+  noShares: bigint;
+  liquidity: bigint;
   avgTemp: number;
+  status: number;
   yesPrice: number;
   noPrice: number;
-  status: number;
 }
 
-export function MarketCard({ id, closes, avgTemp, yesPrice, noPrice, status }: MarketCardProps) {
+interface MarketCardProps {
+  market: Market;
+}
+
+export function MarketCard({ market }: MarketCardProps) {
+  const { id, closes, avgTemp, yesPrice, noPrice, status } = market;
   const statusLabels = ["Active", "Pending", "Disputed", "Resolved", "Cancelled"];
   const closesDate = new Date(closes * 1000).toLocaleDateString();
 
