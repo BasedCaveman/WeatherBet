@@ -10,6 +10,7 @@ const AMM_ABI = [
   "function markets(uint256) view returns (uint256 id, uint256 closes, uint256 weekEnd, uint256 yesShares, uint256 noShares, uint256 liq, int256 avg, int256 proposed, uint256 resTime, uint8 status, bool outcome)",
   "function getPrice(uint256 id) view returns (uint256 yes, uint256 no)",
   "function nextId() view returns (uint256)",
+  "function buy(uint256 id, bool isYes, uint256 shares, uint256 maxCost) external",
 ];
 
 interface Market {
@@ -45,7 +46,7 @@ export function useMarkets() {
         for (let i = 1; i < Number(nextId); i++) {
           const m = await contract.markets(i);
           const prices = await contract.getPrice(i);
-          
+
           marketList.push({
             id: i,
             closes: Number(m.closes),
@@ -72,4 +73,52 @@ export function useMarkets() {
   }, [provider]);
 
   return { markets, loading };
+}
+
+export function usePlacePrediction() {
+  const { signer } = useWeb3();
+  const [isPending, setIsPending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const placePrediction = async (
+    marketId: number,
+    isYes: boolean,
+    ethAmount: number
+  ) => {
+    if (!signer) {
+      setError("Wallet not connected");
+      return;
+    }
+
+    setIsPending(true);
+    setIsSuccess(false);
+    setError(null);
+
+    try {
+      const contract = new ethers.Contract(AMM_ADDRESS, AMM_ABI, signer);
+      
+      // Convert ETH amount to shares (simplified - in production would use quoteBuy)
+      const shares = ethers.parseEther(ethAmount.toString());
+      const maxCost = ethers.parseEther((ethAmount * 1.1).toString()); // 10% slippage
+      
+      const tx = await contract.buy(marketId, isYes, shares, maxCost);
+      await tx.wait();
+      
+      setIsSuccess(true);
+    } catch (err: any) {
+      console.error("Failed to place prediction:", err);
+      setError(err.message || "Transaction failed");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const reset = () => {
+    setIsPending(false);
+    setIsSuccess(false);
+    setError(null);
+  };
+
+  return { placePrediction, isPending, isSuccess, error, reset };
 }
