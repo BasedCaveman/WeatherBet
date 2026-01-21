@@ -1,28 +1,25 @@
 "use client";
 
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { parseUnits, formatUnits } from "viem";
-import { useState, useEffect, useCallback } from "react";
-import { CONTRACT_ADDRESSES, USDM_ABI } from "@/lib/contracts";
+import { useCallback } from "react";
+import { 
+  CONTRACT_ADDRESSES, 
+  USDM_ABI,
+} from "@/lib/contracts";
 
-// Get contract address for current network
+// Get contract addresses
 function useUsdmAddress() {
-  const { chainId } = useAppKitNetwork();
-  const networkId = chainId || 6342; // Default to MegaETH testnet
-  const addresses = CONTRACT_ADDRESSES[networkId as keyof typeof CONTRACT_ADDRESSES];
-  return addresses?.usdm || CONTRACT_ADDRESSES[6342].usdm;
+  return CONTRACT_ADDRESSES.USDM;
 }
 
 function useAmmAddress() {
-  const { chainId } = useAppKitNetwork();
-  const networkId = chainId || 6342;
-  const addresses = CONTRACT_ADDRESSES[networkId as keyof typeof CONTRACT_ADDRESSES];
-  return addresses?.weatherBetAMM || CONTRACT_ADDRESSES[6342].weatherBetAMM;
+  return CONTRACT_ADDRESSES.AMM;
 }
 
 /**
- * Hook to get USDm balance for current user
+ * Hook to get USDm balance
  */
 export function useUsdmBalance() {
   const { address, isConnected } = useAppKitAccount();
@@ -38,11 +35,9 @@ export function useUsdmBalance() {
     },
   });
 
-  const formattedBalance = balance ? formatUnits(balance as bigint, 18) : "0";
-  
   return {
-    balance: balance as bigint | undefined,
-    formattedBalance,
+    balance: balance ? formatUnits(balance as bigint, 18) : "0",
+    balanceRaw: balance as bigint | undefined,
     isLoading,
     error,
     refetch,
@@ -50,7 +45,7 @@ export function useUsdmBalance() {
 }
 
 /**
- * Hook to get USDm allowance for AMM contract
+ * Hook to get USDm allowance for AMM
  */
 export function useUsdmAllowance() {
   const { address, isConnected } = useAppKitAccount();
@@ -68,7 +63,8 @@ export function useUsdmAllowance() {
   });
 
   return {
-    allowance: allowance as bigint | undefined,
+    allowance: allowance ? formatUnits(allowance as bigint, 18) : "0",
+    allowanceRaw: allowance as bigint | undefined,
     isLoading,
     error,
     refetch,
@@ -76,9 +72,9 @@ export function useUsdmAllowance() {
 }
 
 /**
- * Hook to approve USDm spending
+ * Hook to approve USDm for AMM
  */
-export function useUsdmApprove() {
+export function useApproveUsdm() {
   const usdmAddress = useUsdmAddress();
   const ammAddress = useAmmAddress();
   
@@ -102,16 +98,19 @@ export function useUsdmApprove() {
     [writeContract, usdmAddress, ammAddress]
   );
 
-  const approveMax = useCallback(() => {
-    const maxAmount = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-    
-    writeContract({
-      address: usdmAddress as `0x${string}`,
-      abi: USDM_ABI,
-      functionName: "approve",
-      args: [ammAddress as `0x${string}`, maxAmount],
-    });
-  }, [writeContract, usdmAddress, ammAddress]);
+  const approveMax = useCallback(
+    async () => {
+      const maxAmount = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+      
+      writeContract({
+        address: usdmAddress as `0x${string}`,
+        abi: USDM_ABI,
+        functionName: "approve",
+        args: [ammAddress as `0x${string}`, maxAmount],
+      });
+    },
+    [writeContract, usdmAddress, ammAddress]
+  );
 
   return {
     approve,
@@ -127,10 +126,16 @@ export function useUsdmApprove() {
 /**
  * Hook to claim from faucet (testnet only)
  */
-export function useUsdmFaucet() {
-  const { address, isConnected } = useAppKitAccount();
+export function useFaucet() {
   const usdmAddress = useUsdmAddress();
+  const { address } = useAppKitAccount();
   
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+
   // Check if user can claim
   const { data: canClaim, refetch: refetchCanClaim } = useReadContract({
     address: usdmAddress as `0x${string}`,
@@ -138,7 +143,7 @@ export function useUsdmFaucet() {
     functionName: "canClaimFaucet",
     args: address ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: isConnected && !!address,
+      enabled: !!address,
     },
   });
 
@@ -149,91 +154,30 @@ export function useUsdmFaucet() {
     functionName: "timeUntilNextClaim",
     args: address ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: isConnected && !!address,
+      enabled: !!address,
     },
   });
 
-  // Get faucet amount
-  const { data: faucetAmount } = useReadContract({
-    address: usdmAddress as `0x${string}`,
-    abi: USDM_ABI,
-    functionName: "faucetAmount",
-    query: {
-      enabled: isConnected,
+  const claim = useCallback(
+    async () => {
+      writeContract({
+        address: usdmAddress as `0x${string}`,
+        abi: USDM_ABI,
+        functionName: "faucet",
+      });
     },
-  });
-
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const claim = useCallback(() => {
-    writeContract({
-      address: usdmAddress as `0x${string}`,
-      abi: USDM_ABI,
-      functionName: "faucet",
-    });
-  }, [writeContract, usdmAddress]);
-
-  // Format faucet amount
-  const formattedFaucetAmount = faucetAmount 
-    ? formatUnits(faucetAmount as bigint, 18) 
-    : "1000";
+    [writeContract, usdmAddress]
+  );
 
   return {
     claim,
     canClaim: canClaim as boolean | undefined,
-    timeUntilClaim: timeUntilClaim as bigint | undefined,
-    faucetAmount: formattedFaucetAmount,
+    timeUntilClaim: timeUntilClaim ? Number(timeUntilClaim) : 0,
     isPending,
     isConfirming,
     isSuccess,
     error,
+    hash,
     refetchCanClaim,
-  };
-}
-
-/**
- * Combined hook for USDm token management
- */
-export function useUsdm() {
-  const balance = useUsdmBalance();
-  const allowance = useUsdmAllowance();
-  const approve = useUsdmApprove();
-  const faucet = useUsdmFaucet();
-
-  // Check if approval is needed for a specific amount
-  const needsApproval = useCallback(
-    (amount: string) => {
-      if (!allowance.allowance) return true;
-      const amountBigInt = parseUnits(amount, 18);
-      return allowance.allowance < amountBigInt;
-    },
-    [allowance.allowance]
-  );
-
-  // Refresh all data
-  const refetchAll = useCallback(() => {
-    balance.refetch();
-    allowance.refetch();
-    faucet.refetchCanClaim();
-  }, [balance, allowance, faucet]);
-
-  return {
-    balance: balance.formattedBalance,
-    balanceRaw: balance.balance,
-    allowance: allowance.allowance,
-    needsApproval,
-    approve: approve.approve,
-    approveMax: approve.approveMax,
-    isApproving: approve.isPending || approve.isConfirming,
-    faucet: faucet.claim,
-    canClaimFaucet: faucet.canClaim,
-    faucetAmount: faucet.faucetAmount,
-    isClaiming: faucet.isPending || faucet.isConfirming,
-    refetchAll,
-    isLoading: balance.isLoading || allowance.isLoading,
   };
 }
