@@ -19,10 +19,8 @@ import {
 
 // Get contract address for current network
 function useAmmAddress() {
-  const { chainId } = useAppKitNetwork();
-  const networkId = chainId || 6342;
-  const addresses = CONTRACT_ADDRESSES[networkId as keyof typeof CONTRACT_ADDRESSES];
-  return addresses?.weatherBetAMM || CONTRACT_ADDRESSES[6342].weatherBetAMM;
+  return CONTRACT_ADDRESSES.AMM;
+}
 }
 
 /**
