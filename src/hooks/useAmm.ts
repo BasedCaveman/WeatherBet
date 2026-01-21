@@ -1,9 +1,9 @@
 "use client";
 
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { parseUnits, formatUnits } from "viem";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { 
   CONTRACT_ADDRESSES, 
   WEATHER_BET_AMM_ABI,
@@ -12,15 +12,13 @@ import {
   ContractPosition,
   BettingStatus,
   ResolutionStatus,
-  formatUsdm,
   priceToPercent,
   getStatusString,
 } from "@/lib/contracts";
 
-// Get contract address for current network
+// Get contract address
 function useAmmAddress() {
   return CONTRACT_ADDRESSES.AMM;
-}
 }
 
 /**
@@ -40,7 +38,6 @@ export function useAmmAccount() {
     },
   });
 
-  // Parse the account data
   const parsedAccount = account ? {
     balance: formatUnits((account as ContractUserAccount).balance, 18),
     balanceRaw: (account as ContractUserAccount).balance,
@@ -154,7 +151,6 @@ export function useMarket(marketId: number) {
     },
   });
 
-  // Get prices
   const { data: prices, refetch: refetchPrices } = useReadContract({
     address: ammAddress as `0x${string}`,
     abi: WEATHER_BET_AMM_ABI,
