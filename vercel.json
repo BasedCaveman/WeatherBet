@@ -1,1 +1,4 @@
-{\n  "outputDirectory": ".next"\n}
+{
+  "version": 2,
+  "framework": "nextjs"
+}
