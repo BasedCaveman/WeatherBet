@@ -181,3 +181,47 @@ export function useFaucet() {
     refetchCanClaim,
   };
 }
+
+/**
+ * Combined hook for USDm functionality
+ */
+export function useUsdm() {
+  const { balance, balanceRaw, isLoading: isLoadingBalance, refetch: refetchBalance } = useUsdmBalance();
+  const { allowance, allowanceRaw, isLoading: isLoadingAllowance, refetch: refetchAllowance } = useUsdmAllowance();
+  const { approve, approveMax, isPending: isApproving, isConfirming: isApproveConfirming, isSuccess: isApproveSuccess } = useApproveUsdm();
+  const { claim: faucet, canClaim: canClaimFaucet, isPending: isClaiming, isConfirming: isClaimConfirming, isSuccess: isClaimSuccess } = useFaucet();
+
+  const needsApproval = useCallback((amount: string) => {
+    if (!allowanceRaw) return true;
+    try {
+      const amountBI = parseUnits(amount, 18);
+      return allowanceRaw < amountBI;
+    } catch {
+      return true;
+    }
+  }, [allowanceRaw]);
+
+  const refetchAll = useCallback(() => {
+    refetchBalance();
+    refetchAllowance();
+  }, [refetchBalance, refetchAllowance]);
+
+  return {
+    balance,
+    balanceRaw,
+    allowance,
+    allowanceRaw,
+    approve,
+    approveMax,
+    faucet,
+    canClaimFaucet,
+    faucetAmount: "1000", // Default faucet amount
+    needsApproval,
+    isLoading: isLoadingBalance || isLoadingAllowance,
+    isApproving: isApproving || isApproveConfirming,
+    isApproveSuccess,
+    isClaiming: isClaiming || isClaimConfirming,
+    isClaimSuccess,
+    refetchAll,
+  };
+}
