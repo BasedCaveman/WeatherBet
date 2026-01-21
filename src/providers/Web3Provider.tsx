@@ -23,13 +23,14 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const connect = async () => {
-    if (typeof window.ethereum === "undefined") {
+    const ethereum = (window as any).ethereum;
+    if (typeof ethereum === "undefined") {
       alert("Please install MetaMask!");
       return;
     }
     setIsConnecting(true);
     try {
-      const browserProvider = new ethers.BrowserProvider(window.ethereum);
+      const browserProvider = new ethers.BrowserProvider(ethereum);
       await browserProvider.send("eth_requestAccounts", []);
       const signer = await browserProvider.getSigner();
       const address = await signer.getAddress();
@@ -54,9 +55,10 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      window.ethereum.on("accountsChanged", () => window.location.reload());
-      window.ethereum.on("chainChanged", () => window.location.reload());
+    const ethereum = (window as any).ethereum;
+    if (typeof ethereum !== "undefined") {
+      ethereum.on("accountsChanged", () => window.location.reload());
+      ethereum.on("chainChanged", () => window.location.reload());
     }
   }, []);
 
